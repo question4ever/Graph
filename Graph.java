@@ -1,13 +1,26 @@
 import java.awt.Graphics;
-import java.awt.*;
 import java.lang.Runnable;
 import java.lang.Thread;
+import java.util.ArrayList;
+import java.util.EventObject;
+
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicTreeUI.MouseInputHandler;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
+import java.lang.Math;
 
 
-class GUI implements Runnable{
+class GUI {
 
-   public void createWindow(){
+   public JFrame createWindow(){
        JFrame frame = new JFrame("My First GUI");
        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        frame.setSize(500,500);
@@ -21,9 +34,10 @@ class GUI implements Runnable{
        JMenuItem m22 = new JMenuItem("Save as");
        m1.add(m11);
        m1.add(m22);
-       //frame.add(new GraphCanvas(g));
        frame.getContentPane().add(mb, BorderLayout.PAGE_START);
        frame.setVisible(true);
+       MouseInputHandler handler = new MouseInputHandler(source, destination, event)
+       return frame;
    }
 
    public void run()
@@ -33,51 +47,83 @@ class GUI implements Runnable{
    }
 }
 
+class Circle {
+
+    int x, y, width, height;
+
+    public Circle(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public void draw(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        Ellipse2D.Double circle = new Ellipse2D.Double(x, y, 10, 10);
+
+        g2d.setColor(Color.BLACK);
+        g2d.fill(circle);
+    }
+
+}
+
 class Node {
    public static int num_nodes = 0;
    public int value;
    public Node adjacent[];
+   public Circle shape;
    public Node(){
       num_nodes++;
       value = num_nodes;
+      this.shape = new Circle(20,20);
    }
+
 }
 
-public class Graph{
-   public Node vertices[];
+public class Graph extends JPanel {
+   public ArrayList<Node> vertices;
    public int adjacency_matrix[][];
 
+
+   @Override
+   protected void paintComponent(Graphics g){
+      super.paintComponent(g);
+      double angle = (Math.PI)/vertices.length;
+      System.out.println("Angle :" + angle);
+      int x = vertices.get(0).shape.x;
+      int y = vertices.get(0).shape.y;
+      for (int i = 0; i < vertices.length; i++) {
+         Circle nCircle = vertices.get(i).shape;
+         nCircle.draw(g);
+      }
+   }
+
    public Graph Cycle(int size){
-      vertices = new Node[size];
+      vertices = new ArrayList<Node>();
       for(int i = 0; i < size; i++){
-         vertices[i] = new Node();
+         vertices.add(new Node()); 
       }
       for(int i = 0; i < size; i++){
-         vertices[i].adjacent = new Node[2];
+         vertices.get(i).adjacent = new Node[2];
          if(i == 0) {
-           vertices[i].adjacent[0] = vertices[i + 1];
-           vertices[i].adjacent[1] = vertices[size - 1];
+           vertices.get(i).adjacent[0] = vertices.get(i + 1);
+           vertices.get(i).adjacent[1] = vertices.get(size - 1);
          } 
-         else if(i == 9) {
-           vertices[i].adjacent[0] = vertices[0];
-           vertices[i].adjacent[1] = vertices[i - 1];
+         else if(i == (size - 1)) {
+           vertices.get(i).adjacent[0] = vertices.get(0);
+           vertices.get(i).adjacent[1] = vertices.get(i - 1);
          }
          else{
-           vertices[i].adjacent[0] = vertices[i + 1];
-           vertices[i].adjacent[1] = vertices[i - 1];
+           vertices.get(i).adjacent[0] = vertices.get(i + 1);
+           vertices.get(i).adjacent[1] = vertices.get(i - 1);
          }
-         String x = "Vertex: " + vertices[i].value + " has 2 edges " + vertices[i].adjacent[0].value + ", " 
-         + vertices[i].adjacent[1].value;
+         String x = "Vertex: " + vertices.get(i).value + " has 2 edges " + vertices.get(i).adjacent[0].value + ", " 
+         + vertices.get(i).adjacent[1].value;
          System.out.println(x) ;
       }
       return this;
    }
 
    public static void main(String[] args) {
-      GUI gui = new GUI();
-      Thread gui_t = new Thread(gui);
-      gui_t.start();
-      Graph g = new Graph();
-      g.Cycle(10);
+      
    }
 }
