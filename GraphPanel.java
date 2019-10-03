@@ -1,26 +1,27 @@
 import javax.swing.*;
-import javax.swing.event.MouseInputListener;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
 import java.awt.Color;
+import java.util.Collections;
 
 class Circle extends JComponent {
 
     int x, y, width, height;
+    Color c;
 
     public Circle(int x, int y){
         this.x = x;
         this.y = y;
+        c = Color.BLACK;
     }
 
     public void draw(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
-        Ellipse2D.Double circle = new Ellipse2D.Double(x, y, 10, 10);
+        Ellipse2D.Double circle = new Ellipse2D.Double(x-5, y-5, 10, 10);
 
-        g2d.setColor(Color.BLACK);
+        g2d.setColor(c);
         g2d.fill(circle);
     }
 }
@@ -33,6 +34,7 @@ class Node {
     public Node() {
        num_nodes++;
        value = num_nodes;
+       adjacent = new ArrayList<Node>();
        this.shape = new Circle(20,20);
     }
     public Node(int x, int y){
@@ -57,10 +59,7 @@ public class GraphPanel extends JPanel {
         addMouseListener(new MouseListener(){
             @Override
             public void mouseClicked(MouseEvent e) {
-                int x=e.getX();
-                int y=e.getY();
-                addNode(x, y);
-                repaint();
+                
             }
 
             @Override
@@ -75,11 +74,46 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                int x = vertices.get(vertices.size()- 1).shape.x;
+                int y = vertices.get(vertices.size()- 1).shape.y;
+                if(e.getX() !=  x || e.getY() != y){
+                    x=e.getX();
+                    y=e.getY();
+                    for (Node var : vertices) {
+                        boolean inRangeX = (x <= (var.shape.x + 5) && x >= (var.shape.x - 5));
+                        boolean inRangeY = (y <= (var.shape.y + 5) && y >= (var.shape.y - 5));
+                        if(inRangeX && inRangeY){
+                            var.shape.c = Color.GREEN;
+                            vertices.get(vertices.size()- 1).adjacent.add(var);
+                            var.adjacent.add(vertices.get(vertices.size()- 1));
+                            repaint();
+                            return;
+                        }
+                    }
+                    Node n = addNode(x, y);
+                    repaint();
+                    vertices.get(vertices.size()- 2).adjacent.add(n);
+                    n.adjacent.add(vertices.get(vertices.size()- 2));
+                }
                 return;
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
+                int x=e.getX();
+                int y=e.getY();
+                for (Node var : vertices) {
+                    boolean inRangeX = (x <= (var.shape.x + 5) && x >= (var.shape.x - 5));
+                    boolean inRangeY = (y <= (var.shape.y + 5) && y >= (var.shape.y - 5));
+                    if(inRangeX && inRangeY){
+                        var.shape.c = Color.BLUE;
+                        Collections.swap(vertices, vertices.indexOf(var), vertices.size() - 1);
+                        repaint();
+                        return;
+                    }
+                }
+                addNode(x, y);
+                repaint();
                 return;
             }
         });
@@ -102,11 +136,10 @@ public class GraphPanel extends JPanel {
         }
     }
 
-    public void addNode(int x, int y){
-        vertices.add(new Node(x, y));
-        if(vertices.size() >=  2){
-            infoBox(vertices.size() - 1);
-        }
+    public Node addNode(int x, int y){
+        Node n = new Node(x, y);
+        vertices.add(n);
+        return n;
     }
 
     public void infoBox(int index)

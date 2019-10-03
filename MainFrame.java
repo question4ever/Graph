@@ -16,10 +16,26 @@ public class MainFrame extends JFrame {
         setLayout(new BorderLayout());
         //Create Swing Component
         final GraphPanel graph = new GraphPanel();
-        
+        JButton outputButton = new JButton("Output");
+        outputButton.addActionListener(new ActionListener(){
+            
+            @Override
+            public void actionPerformed(ActionEvent e){
+                String x = "";
+                for (Node var : graph.vertices) {
+                    x = x + "Node: " + var.value + " [";
+                    for (Node n : var.adjacent) {
+                        x = x + n.value + " ";
+                    }
+                    x += "]\n";
+                }
+                System.out.println(x);
+            }
+        });
         //Add swing component
         Container c = getContentPane();
 
         c.add(graph, BorderLayout.CENTER);
+        c.add(outputButton, BorderLayout.WEST);
     }
 }
