@@ -5,12 +5,10 @@ import java.util.ArrayList;
 import java.util.EventObject;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicTreeUI.MouseInputHandler;
 
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -18,7 +16,7 @@ import java.awt.geom.Ellipse2D;
 import java.lang.Math;
 
 
-class GUI {
+class GUI extends JFrame implements ActionListener{
 
    public JFrame createWindow(){
        JFrame frame = new JFrame("My First GUI");
@@ -36,7 +34,6 @@ class GUI {
        m1.add(m22);
        frame.getContentPane().add(mb, BorderLayout.PAGE_START);
        frame.setVisible(true);
-       MouseInputHandler handler = new MouseInputHandler(source, destination, event)
        return frame;
    }
 
@@ -63,7 +60,6 @@ class Circle {
         g2d.setColor(Color.BLACK);
         g2d.fill(circle);
     }
-
 }
 
 class Node {
@@ -87,10 +83,6 @@ public class Graph extends JPanel {
    @Override
    protected void paintComponent(Graphics g){
       super.paintComponent(g);
-      double angle = (Math.PI)/vertices.length;
-      System.out.println("Angle :" + angle);
-      int x = vertices.get(0).shape.x;
-      int y = vertices.get(0).shape.y;
       for (int i = 0; i < vertices.length; i++) {
          Circle nCircle = vertices.get(i).shape;
          nCircle.draw(g);
