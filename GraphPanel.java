@@ -29,29 +29,38 @@ class Circle extends JComponent {
 class Node {
     public static int num_nodes = 0;
     public int value;
+    public int distance;
+    public int eccentricity;
     public ArrayList<Node> adjacent;
     public Circle shape;
+    public boolean visited;
     public Node() {
        num_nodes++;
        value = num_nodes;
        adjacent = new ArrayList<Node>();
        this.shape = new Circle(20,20);
+       visited = false;
+       distance = -1;
     }
     public Node(int x, int y){
         num_nodes++;
         value = num_nodes;
         adjacent = new ArrayList<Node>();
         this.shape = new Circle(x, y);
+        visited = false;
+        distance = -1;
+        eccentricity = distance;
     }
 }
 
 public class GraphPanel extends JPanel {
     public ArrayList<Node> vertices;
-    public int adjacency_matrix[][];
+    public ArrayList<Node> visited;
     private final JLabel text;
 
     public GraphPanel(){
         vertices = new ArrayList<Node>();
+        visited = new ArrayList<Node>();
         text = new JLabel();
         add(text);
         setBackground(Color.WHITE);
@@ -127,6 +136,7 @@ public class GraphPanel extends JPanel {
                 Circle nCircle = vertices.get(i).shape;
                 text.setText("Node " + vertices.get(i).value + " at (" + nCircle.x + ", " + nCircle.y + ")");
                 nCircle.draw(g);
+                g.drawString("" + vertices.get(i).eccentricity ,nCircle.x - 5, nCircle.y - 5);
                 if(!vertices.get(i).adjacent.isEmpty()){
                     for (Node var : vertices.get(i).adjacent) {
                         g.drawLine(nCircle.x, nCircle.y, var.shape.x, var.shape.y);
@@ -136,18 +146,117 @@ public class GraphPanel extends JPanel {
         }
     }
 
+    public void ResetVisited(){
+        visited = new ArrayList<Node>();
+        for (Node n : vertices) {
+            n.shape.c = Color.BLACK;
+            if(n.visited){
+                n.visited = false;
+            }
+        }
+    }
+
+    private void VisitNode(Node n){
+        n.visited = true;
+        visited.add(n);
+    }
+
+    private void UnVisitNode(Node n){
+        n.visited = false;
+        visited.remove(n);
+        n.shape.c = Color.BLACK;
+    }
+
+    private Node FindMin(ArrayList<Node> v){
+        Node min = null;
+        for (Node n : v) {
+            if(!n.visited){
+                if(min == null){
+                    min = n;
+                }
+                if(n.distance < min.distance){
+                    min = n;
+                }
+            }
+        }
+        return min;
+    }
+
+    private ArrayList<Node> BestPath(Node start){
+        //Mark selected initial node with a current distance of 0 and the 
+        //rest with infinity
+        ArrayList<Node> bp = new ArrayList<Node>();
+        for (Node n : vertices) {
+            if(n.value != start.value){
+                n.distance = vertices.size();
+            }
+            else{
+                n.distance = 0;
+            }
+        }
+        while(visited.size() < vertices.size()){
+            Node current = FindMin(vertices);
+            for (Node neighbor : current.adjacent) {
+                int distance = current.distance + 1;
+                if(neighbor.distance > distance){
+                    neighbor.distance = distance;
+                }
+            }
+            VisitNode(current);
+            bp.add(current);
+        }
+        return bp;
+    }
+
+    public int GetEccentricity(Node start){
+        ArrayList<Node> bp = BestPath(start);
+        int max = 0;
+        for (Node var : bp) {
+            if(var.distance > max){
+                max = var.distance;
+            }
+        }
+        return max;
+    }
+
+    public void DeleteVertex(int value){
+        for(int i = 0; i < vertices.size(); i++){
+            Node n = vertices.get(i);
+            for(int j = 0; j < n.adjacent.size(); j++){
+                Node adj = n.adjacent.get(j);
+                if(adj.value == value){
+                    n.adjacent.remove(j);
+                }
+            }
+        }
+        for (int i = 0; i < vertices.size(); i++) {
+            Node n = vertices.get(i);
+            if(n.value == value){
+                vertices.remove(n);
+            }
+        }
+    }
+
+    public ArrayList<Node> FindCenter() {
+        int min_eccentricity = vertices.size();
+        ArrayList<Node> center = new ArrayList<Node>();
+        for(Node n : vertices){
+            if(n.eccentricity < min_eccentricity){
+                min_eccentricity = n.eccentricity;
+            }
+        }
+        for(Node n : vertices){
+            if(n.eccentricity == min_eccentricity){
+                n.shape.c = Color.RED;
+                center.add(n);
+            }
+        }
+        return center;
+    }
+
     public Node addNode(int x, int y){
         Node n = new Node(x, y);
         vertices.add(n);
         return n;
-    }
-
-    public void infoBox(int index)
-    {
-        int dialog = JOptionPane.showConfirmDialog(null, "Does an edge exist between last node?", "Yes/No : Edge", JOptionPane.YES_NO_OPTION);
-        if(dialog == JOptionPane.YES_OPTION){
-            vertices.get(index).adjacent.add(vertices.get(index - 1));
-            vertices.get(index - 1).adjacent.add(vertices.get(index));
-        }
     }
 }
